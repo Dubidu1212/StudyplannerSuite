@@ -14,7 +14,7 @@ from unicodedata import normalize
 #import pandas as pd
 import numpy as np
 
-from CoursePlaner.Backend.scheduletest import course, module
+from CoursePlaner.Backend.scheduletest import course, c_module
 
 
 courses = ["529-0004-01L", "529-0004-01L"]
@@ -63,6 +63,7 @@ class time_slot:
         return [self.day, [int(i) for i in self.timespan.split("-")], self.room]
 
 #TODO: implement etcs querry
+#TODO: implement place querry
 class course_info:
     def __init__(self, c_number, c_type, time, schedule, course_link, etcs = None, prof = None, info = None):
         """
@@ -210,7 +211,9 @@ def get_courses_format(course_number_list: List[str], semester:str) -> List[cour
     """
     courses:list[course] = []
 
-    course_infos = []
+
+    courses:list[course] = []
+
     for course_number in course_number_list:
 
         query = create_query(semester, course_number)
@@ -220,18 +223,22 @@ def get_courses_format(course_number_list: List[str], semester:str) -> List[cour
         for mcu in matching_courses_url:
             details = query_detail_page(mcu)
 
+            curr_course_infos = []
             for course_part in details: 
-                course_infos.append(course_part)
-
-            #create modules
-            for course_part in details:
-                
-                
-                curr_module = c_module(course_part.type,course_part_it,"<slots>","<place>")
+                curr_course_infos.append(course_part)
             
-            curr_course = course("<add here the course name>",details.number,None)
+            #create modules
+            modules = []
+            for course_part_it,course_part in enumerate(details):
+                #print(course_part.schedule) 
 
-    return course_infos 
+                curr_module = c_module(course_part.type,course_part_it,course_part.schedule,"place")
+                modules.append(curr_module) 
+
+            curr_course = course(modules[0].name,course_number,modules)
+            courses.append(curr_course)
+
+    return courses 
 
 #"551-1402-00L","551-0307-00L","551-0307-01L", "401-2813-00L",
 
